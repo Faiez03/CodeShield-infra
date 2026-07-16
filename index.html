@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CodeShield — Analyze your source code for complexity and technical debt." />
+  <title>CodeShield</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/index.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+
+<body>
+
+  <div id="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header__brand">
+        <img src="/logo.svg" alt="CodeShield Logo" class="header__logo" />
+        <div>
+          <div class="header__title">CodeShield</div>
+          <div class="header__subtitle">Source Code Analysis</div>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Drag-and-Drop Zone -->
+      <section>
+        <h2 class="section-title"><span class="section-title__icon"></span> Upload Source Files</h2>
+
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone__inner">
+            <div class="dropzone__title">Drag & drop source files here</div>
+            <div class="dropzone__subtitle">or use the actions below to select files or scan a directory</div>
+            <div class="dropzone__formats">
+              <span class="format-badge">.py</span>
+              <span class="format-badge">.java</span>
+              <span class="format-badge">.js</span>
+              <span class="format-badge">.cpp</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions-row">
+          <div class="action-card" id="btn-pick-files">
+            <div class="action-card__text">
+              <h3>Select Files</h3>
+              <p>Choose individual source files</p>
+            </div>
+          </div>
+          <div class="action-card" id="btn-pick-dir">
+            <div class="action-card__text">
+              <h3>Scan Directory</h3>
+              <p>Recursively scan a folder</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden inputs -->
+        <input type="file" id="file-input" multiple accept=".py,.java,.js,.cpp" hidden />
+        <input type="file" id="dir-input" webkitdirectory hidden />
+      </section>
+
+      <!-- File Queue -->
+      <section class="file-queue" id="file-queue-section" style="display:none;">
+        <div class="file-queue__header">
+          <h2 class="section-title"><span class="section-title__icon"></span> File Queue</h2>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <span class="file-queue__count" id="file-count"></span>
+            <button class="file-queue__clear" id="btn-clear">Clear All</button>
+          </div>
+        </div>
+        <div class="file-queue__list" id="file-list"></div>
+      </section>
+
+      <!-- Submit -->
+      <div class="submit-area" id="submit-area" style="display:none;">
+        <div class="submit-area__summary" id="submit-summary"></div>
+        <button class="btn-scan" id="btn-scan" disabled>
+          Start Scan
+        </button>
+      </div>
+
+      <!-- Settings -->
+      <section class="settings-section" id="settings-section" style="display:none;">
+        <div class="settings-toggle" id="settings-toggle">
+          <h2 class="section-title">Threshold Settings</h2>
+          <span class="settings-toggle__arrow" id="settings-arrow">&#9660;</span>
+        </div>
+        <div class="settings-body" id="settings-body" style="display:none;">
+          <div class="settings-grid">
+            <div class="setting-field">
+              <label class="setting-field__label" for="input-tdi-threshold">TDI Threshold</label>
+              <input class="setting-field__input" type="number" id="input-tdi-threshold" min="1" max="200" step="1"
+                value="50" />
+              <span class="setting-field__help">Modules above this TDI are flagged as high-risk (default: 50)</span>
+            </div>
+            <div class="setting-field">
+              <label class="setting-field__label" for="input-complexity-threshold">Complexity Threshold</label>
+              <input class="setting-field__input" type="number" id="input-complexity-threshold" min="1" max="100"
+                step="1" value="10" />
+              <span class="setting-field__help">Per-function complexity above this is flagged (default: 10)</span>
+            </div>
+            <div class="setting-field">
+              <label class="setting-field__label" for="input-vuln-threshold">Vuln Density Threshold</label>
+              <input class="setting-field__input" type="number" id="input-vuln-threshold" min="1" max="500" step="1"
+                value="20" />
+              <span class="setting-field__help">Vulnerabilities per 1,000 LOC above this is flagged (default: 20)</span>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn-settings btn-settings--save" id="btn-save-settings">Save Settings</button>
+            <button class="btn-settings btn-settings--reset" id="btn-reset-settings">Reset Defaults</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section class="results-section" id="results-section" style="display:none;">
+        <div class="results-header">
+          <h2 class="section-title">Analysis Results</h2>
+          <div class="export-actions">
+            <button class="btn-export btn-export--csv" id="btn-export-csv" title="Export as CSV for Excel">Export CSV</button>
+            <button class="btn-export btn-export--pdf" id="btn-export-pdf" title="Export as PDF for presentations">Export PDF</button>
+            <button class="results-close" id="btn-close-results">Close Results</button>
+          </div>
+        </div>
+        <div class="results-summary" id="results-summary"></div>
+        <div class="results-list" id="results-list"></div>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="dashboard-section" id="dashboard-section" style="display:none;">
+        <div class="dashboard-header">
+          <h2 class="section-title">Visual Dashboard</h2>
+          <div class="dashboard-actions">
+            <button class="btn-export btn-export--dashboard" id="btn-print-dashboard" title="Print or save as PDF">
+              Print / Save PDF
+            </button>
+          </div>
+        </div>
+        <div class="dashboard-kpis" id="dashboard-kpis"></div>
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <h3 class="chart-card__title">TDI Distribution</h3>
+            <canvas id="chart-tdi-dist"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-card__title">Top 10 High-Risk Modules</h3>
+            <canvas id="chart-top-modules"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-card__title">Vulnerability Type Breakdown</h3>
+            <canvas id="chart-vuln-types"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-card__title">Complexity Distribution</h3>
+            <canvas id="chart-complexity-dist"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>
