@@ -12,12 +12,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::984244680905:role/github-actions-codeshield-deploy
+          role-to-assume: "${{ secrets.ROLE_ARN }}"
           aws-region: eu-west-2
 
       - name: Sync frontend files to S3
