@@ -37,6 +37,7 @@ resource "aws_iam_role" "github_deploy" {
 resource "aws_iam_role_policy" "deploy_perms" {
   name = "codeshield-deploy-policy"
   role = aws_iam_role.github_deploy.id
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -47,7 +48,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
       },
       {
         Effect   = "Allow"
-        Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution"]
+        Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions" ]
         Resource = "*"
       }
     ]
