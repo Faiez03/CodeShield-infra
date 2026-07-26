@@ -22,7 +22,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: "${{ secrets.ROLE_ARN }}"
-          aws-region: eu-west-2
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -32,4 +32,3 @@ jobs:
         run: |
           terraform init
           terraform destroy -auto-approve
-
