@@ -7,6 +7,12 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  backend "s3" {
+    bucket = "faiez-codeshield-tfstate"
+    key    = "codeshield/terraform.tfstate"
+    region = "eu-west-2"
+  }
 }
 
 provider "aws" {

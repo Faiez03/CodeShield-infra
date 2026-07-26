@@ -22,8 +22,18 @@ jobs:
           role-to-assume: "${{ secrets.ROLE_ARN }}"
           aws-region: eu-west-2
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Get CloudFront Distribution ID
+        id: tf-outputs
+        working-directory: ./terraform
+        run: |
+          terraform init
+          echo "dist_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+
       - name: Sync frontend files to S3
         run: aws s3 sync . s3://faiez-codeshield --exclude "terraform/*" --exclude ".git/*" --exclude ".github/*"
 
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id E3DGVUZSCSV6YW --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.tf-outputs.outputs.dist_id }} --paths "/*"  

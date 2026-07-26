@@ -7,6 +7,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 }
 
 resource "aws_cloudfront_distribution" "frontend" {
+  comment = "codeshield"
   enabled             = true
   default_root_object = "index.html"
 
