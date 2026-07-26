@@ -20,10 +20,16 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: "${{ secrets.ROLE_ARN }}"
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: eu-west-2
+
+      - name: Get CloudFront Distribution ID by comment
+        id: cf
+        run: |
+          DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='codeshield'].Id" --output text)
+          echo "dist_id=$DIST_ID" >> "$GITHUB_OUTPUT"
 
       - name: Sync frontend files to S3
-        run: aws s3 sync . s3://${{ vars.S3_BUCKET }} --exclude "terraform/*" --exclude ".git/*" --exclude ".github/*"
+        run: aws s3 sync . s3://faiez-codeshield --exclude "terraform/*" --exclude ".git/*" --exclude ".github/*"
 
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DIST_ID }} --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ steps.cf.outputs.dist_id }} --paths "/*"
