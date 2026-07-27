@@ -21,3 +21,9 @@ variable "github_repo" {
   type        = string
   default     = "Faiez03/CodeShield-infra"
 }
+
+variable "github_repo_immutable" {
+  description = "Same repository in GitHub's immutable owner@id/repo@id form"
+  type        = string
+  default     = "Faiez03@203034156/CodeShield-infra@1303290433"
+}

@@ -20,10 +20,15 @@ data "aws_iam_policy_document" "github_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
+    # Multiple values are OR'd. The immutable form is what this repo currently
+    # sends; the plain form is kept so auth survives the setting being turned off.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values = [
+        "repo:${var.github_repo_immutable}:*",
+        "repo:${var.github_repo}:*",
+      ]
     }
   }
 }
@@ -78,9 +83,15 @@ resource "aws_iam_role_policy" "deploy_perms" {
       },
 
       {
-        Sid      = "AppBucketObjects"
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectTagging"]
+        Sid    = "AppBucketObjects"
+        Effect = "Allow"
+        # DeleteObjectVersion is required by force_destroy: the provider empties the
+        # bucket by version ID, which is a distinct action from DeleteObject even
+        # when versioning is disabled.
+        Action = [
+          "s3:GetObject", "s3:PutObject", "s3:GetObjectTagging",
+          "s3:DeleteObject", "s3:DeleteObjectVersion",
+        ]
         Resource = "arn:aws:s3:::${var.bucket_name}/*"
       },
 
