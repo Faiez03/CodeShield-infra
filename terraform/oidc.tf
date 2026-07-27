@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "github_trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Faiez03/CodeShield-infra:*"]
+      values   = ["repo:Faiez03@*/CodeShield-infra@*:*"]
     }
   }
 }
