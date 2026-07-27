@@ -41,7 +41,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # --- Frontend + tfstate S3 buckets: full lifecycle ---
+
       {
         Sid    = "S3BucketLifecycle"
         Effect = "Allow"
@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "arn:aws:s3:::faiez-codeshield-tfstate"
         ]
       },
-      # --- Objects inside both buckets ---
+
       {
         Sid    = "S3ObjectLifecycle"
         Effect = "Allow"
@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "arn:aws:s3:::faiez-codeshield-tfstate/*"
         ]
       },
-      # --- CloudFront: distribution + OAC + cache invalidation ---
+
       {
         Sid    = "CloudFrontManagement"
         Effect = "Allow"
@@ -85,7 +85,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
         ]
         Resource = "*"
       },
-      # --- OIDC trust provider ---
+
       {
         Sid    = "OIDCProviderManagement"
         Effect = "Allow"
@@ -95,7 +95,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
         ]
         Resource = aws_iam_openid_connect_provider.github.arn
       },
-      # --- The role + its own inline policy ---
+
       {
         Sid    = "SelfRoleManagement"
         Effect = "Allow"
