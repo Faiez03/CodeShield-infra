@@ -46,7 +46,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
         Sid    = "S3BucketLifecycle"
         Effect = "Allow"
         Action = [
-          "s3:CreateBucket", "s3:DeleteBucket",
+          "s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket",
           "s3:GetBucketAcl", "s3:PutBucketAcl",
           "s3:GetBucketPolicy", "s3:PutBucketPolicy", "s3:DeleteBucketPolicy",
           "s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketTagging",
@@ -54,7 +54,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "s3:GetBucketWebsite", "s3:GetAccelerateConfiguration", "s3:GetBucketLogging",
           "s3:GetReplicationConfiguration", "s3:GetBucketRequestPayment",
           "s3:GetBucketObjectLockConfiguration", "s3:GetBucketNotification",
-          "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock", 
+          "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock",
         ]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}",
@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
       {
         Sid    = "S3ObjectLifecycle"
         Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:GetObjectTagging"]
+        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectTagging"]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}/*",
           "arn:aws:s3:::faiez-codeshield-tfstate/*"
@@ -114,6 +114,6 @@ output "github_role_arn" {
   value = aws_iam_role.github_deploy.arn
 }
 
-output "cloudfront_distribution_id" { 
+output "cloudfront_distribution_id" {
   value = aws_cloudfront_distribution.frontend.id
 }

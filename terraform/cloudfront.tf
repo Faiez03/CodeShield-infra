@@ -7,7 +7,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 }
 
 resource "aws_cloudfront_distribution" "frontend" {
-  comment = "codeshield"
+  comment             = "codeshield"
   enabled             = true
   default_root_object = "index.html"
 
@@ -18,7 +18,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   default_cache_behavior {
-    allowed_methods       = ["GET", "HEAD"]
+    allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "s3-frontend"
     viewer_protocol_policy = "redirect-to-https"
@@ -31,7 +31,7 @@ resource "aws_cloudfront_distribution" "frontend" {
     }
   }
 
-    restrictions {
+  restrictions {
     geo_restriction {
       restriction_type = "none"
     }
