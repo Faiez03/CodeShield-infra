@@ -1,6 +1,7 @@
 variable "bucket_name" {
   description = "S3 bucket name for CodeShield frontend"
   type        = string
+  default     = "faiez-codeshield"
 }
 
 variable "aws_region" {

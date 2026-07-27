@@ -48,6 +48,11 @@ resource "aws_iam_role_policy" "deploy_perms" {
       },
       {
         Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Resource = ["arn:aws:s3:::faiez-codeshield-tfstate", "arn:aws:s3:::faiez-codeshield-tfstate/*"]
+      },
+      {
+        Effect   = "Allow"
         Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions" ]
         Resource = "*"
       }
