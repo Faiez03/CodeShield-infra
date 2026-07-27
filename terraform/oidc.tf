@@ -93,7 +93,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "iam:GetOpenIDConnectProvider", "iam:CreateOpenIDConnectProvider",
           "iam:UpdateOpenIDConnectProviderThumbprint", "iam:DeleteOpenIDConnectProvider"
         ]
-        Resource = aws_iam_role.github_deploy.arn
+        Resource = aws_iam_openid_connect_provider.github.arn
       },
 
       {
