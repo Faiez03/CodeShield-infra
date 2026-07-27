@@ -54,7 +54,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "s3:GetBucketWebsite", "s3:GetAccelerateConfiguration", "s3:GetBucketLogging",
           "s3:GetReplicationConfiguration", "s3:GetBucketRequestPayment",
           "s3:GetBucketObjectLockConfiguration", "s3:GetBucketNotification",
-          "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock"
+          "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock", 
         ]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}",
@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
       {
         Sid    = "S3ObjectLifecycle"
         Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
+        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:GetObjectTagging"]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}/*",
           "arn:aws:s3:::faiez-codeshield-tfstate/*"
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "cloudfront:ListDistributions", "cloudfront:CreateInvalidation",
           "cloudfront:GetOriginAccessControl", "cloudfront:CreateOriginAccessControl",
           "cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl",
-          "cloudfront:TagResource"
+          "cloudfront:TagResource", "cloudfront:ListTagsForResource"
         ]
         Resource = "*"
       },
