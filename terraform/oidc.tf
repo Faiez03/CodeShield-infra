@@ -43,7 +43,7 @@ resource "aws_iam_role_policy" "deploy_perms" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject", "s3:GetBucketPolicy", "s3:PutBucketPolicy"]
+        Action   = ["s3:CreateBucket", "s3:DeleteBucket", "s3:DeleteBucketPolicy", "s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketTagging", "s3:GetBucketCORS", "s3:GetEncryptionConfiguration", "s3:GetLifecycleConfiguration", "s3:GetBucketWebsite"]
         Resource = ["arn:aws:s3:::${var.bucket_name}", "arn:aws:s3:::${var.bucket_name}/*", "arn:aws:s3:::faiez-codeshield-tfstate","arn:aws:s3:::faiez-codeshield-tfstate/*"]
       },
       {
