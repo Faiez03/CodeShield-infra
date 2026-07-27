@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "github_trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Faiez03@*/CodeShield-infra@*:*"]
+      values   = ["repo:${var.github_repo}:*"]
     }
   }
 }
@@ -34,6 +34,8 @@ resource "aws_iam_role" "github_deploy" {
 }
 
 
+# Permissions for the app stack only. Deliberately no iam:* — the role must not
+# be able to modify or delete itself, or a failed CI run strands its own credentials.
 resource "aws_iam_role_policy" "deploy_perms" {
   name = "codeshield-deploy-policy"
   role = aws_iam_role.github_deploy.id
@@ -43,10 +45,26 @@ resource "aws_iam_role_policy" "deploy_perms" {
     Statement = [
 
       {
-        Sid    = "S3BucketLifecycle"
+        Sid      = "StateBackendBucket"
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = "arn:aws:s3:::${var.state_bucket_name}"
+      },
+
+      {
+        Sid    = "StateBackendObjects"
+        Effect = "Allow"
+        # DeleteObject is required to release the use_lockfile lock.
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Resource = "arn:aws:s3:::${var.state_bucket_name}/*"
+      },
+
+      {
+        Sid    = "AppBucketLifecycle"
         Effect = "Allow"
         Action = [
-          "s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket",
+          "s3:CreateBucket", "s3:DeleteBucket",
+          "s3:ListBucket", "s3:ListBucketVersions",
           "s3:GetBucketAcl", "s3:PutBucketAcl",
           "s3:GetBucketPolicy", "s3:PutBucketPolicy", "s3:DeleteBucketPolicy",
           "s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketTagging",
@@ -56,20 +74,14 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "s3:GetBucketObjectLockConfiguration", "s3:GetBucketNotification",
           "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock",
         ]
-        Resource = [
-          "arn:aws:s3:::${var.bucket_name}",
-          "arn:aws:s3:::faiez-codeshield-tfstate"
-        ]
+        Resource = "arn:aws:s3:::${var.bucket_name}"
       },
 
       {
-        Sid    = "S3ObjectLifecycle"
-        Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectTagging"]
-        Resource = [
-          "arn:aws:s3:::${var.bucket_name}/*",
-          "arn:aws:s3:::faiez-codeshield-tfstate/*"
-        ]
+        Sid      = "AppBucketObjects"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectTagging"]
+        Resource = "arn:aws:s3:::${var.bucket_name}/*"
       },
 
       {
@@ -84,36 +96,12 @@ resource "aws_iam_role_policy" "deploy_perms" {
           "cloudfront:TagResource", "cloudfront:ListTagsForResource"
         ]
         Resource = "*"
-      },
-
-      {
-        Sid    = "OIDCProviderManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:GetOpenIDConnectProvider", "iam:CreateOpenIDConnectProvider",
-          "iam:UpdateOpenIDConnectProviderThumbprint", "iam:DeleteOpenIDConnectProvider"
-        ]
-        Resource = aws_iam_openid_connect_provider.github.arn
-      },
-
-      {
-        Sid    = "SelfRoleManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:GetRole", "iam:CreateRole", "iam:UpdateRole", "iam:DeleteRole", "iam:TagRole",
-          "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
-          "iam:GetRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy"
-        ]
-        Resource = aws_iam_role.github_deploy.arn
       }
     ]
   })
 }
 
 output "github_role_arn" {
-  value = aws_iam_role.github_deploy.arn
-}
-
-output "cloudfront_distribution_id" {
-  value = aws_cloudfront_distribution.frontend.id
+  value       = aws_iam_role.github_deploy.arn
+  description = "Set this as the ROLE_ARN repository secret."
 }
