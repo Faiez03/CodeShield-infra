@@ -43,18 +43,20 @@ resource "aws_iam_role_policy" "deploy_perms" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject"]
-        Resource = ["arn:aws:s3:::${var.bucket_name}", "arn:aws:s3:::${var.bucket_name}/*"]
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject", "s3:GetBucketPolicy", "s3:PutBucketPolicy"]
+        Resource = ["arn:aws:s3:::${var.bucket_name}", "arn:aws:s3:::${var.bucket_name}/*", "arn:aws:s3:::faiez-codeshield-tfstate","arn:aws:s3:::faiez-codeshield-tfstate/*"]
       },
       {
         Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
-        Resource = ["arn:aws:s3:::faiez-codeshield-tfstate", "arn:aws:s3:::faiez-codeshield-tfstate/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions" ]
+        Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions", "cloudfront:GetOriginAccessControl", "cloudfront:CreateOriginAccessControl","cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl" ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetOpenIDConnectProvider", "iam:CreateOpenIDConnectProvider", "iam:UpdateOpenIDConnectProviderThumbprint", "iam:DeleteOpenIDConnectProvider"
+        ]
+        Resource = aws_iam_openid_connect_provider.github.arn
       }
     ]
   })
