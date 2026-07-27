@@ -41,33 +41,53 @@ resource "aws_iam_role_policy" "deploy_perms" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      # --- Frontend + tfstate S3 buckets: full lifecycle ---
       {
+        Sid    = "S3BucketLifecycle"
         Effect = "Allow"
         Action = [
-          "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket",
+          "s3:CreateBucket", "s3:DeleteBucket",
           "s3:GetBucketAcl", "s3:PutBucketAcl",
           "s3:GetBucketPolicy", "s3:PutBucketPolicy", "s3:DeleteBucketPolicy",
-          "s3:CreateBucket", "s3:DeleteBucket",
           "s3:GetBucketVersioning", "s3:GetBucketLocation", "s3:GetBucketTagging",
           "s3:GetBucketCORS", "s3:GetEncryptionConfiguration", "s3:GetLifecycleConfiguration",
-          "s3:GetBucketWebsite",
+          "s3:GetBucketWebsite", "s3:GetAccelerateConfiguration", "s3:GetBucketLogging",
+          "s3:GetReplicationConfiguration", "s3:GetBucketRequestPayment",
+          "s3:GetBucketObjectLockConfiguration", "s3:GetBucketNotification",
           "s3:PutBucketPublicAccessBlock", "s3:GetBucketPublicAccessBlock"
         ]
         Resource = [
-          "arn:aws:s3:::${var.bucket_name}", "arn:aws:s3:::${var.bucket_name}/*",
-          "arn:aws:s3:::faiez-codeshield-tfstate", "arn:aws:s3:::faiez-codeshield-tfstate/*"
+          "arn:aws:s3:::${var.bucket_name}",
+          "arn:aws:s3:::faiez-codeshield-tfstate"
         ]
       },
+      # --- Objects inside both buckets ---
       {
+        Sid    = "S3ObjectLifecycle"
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
+        Resource = [
+          "arn:aws:s3:::${var.bucket_name}/*",
+          "arn:aws:s3:::faiez-codeshield-tfstate/*"
+        ]
+      },
+      # --- CloudFront: distribution + OAC + cache invalidation ---
+      {
+        Sid    = "CloudFrontManagement"
         Effect = "Allow"
         Action = [
-          "cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions",
+          "cloudfront:GetDistribution", "cloudfront:CreateDistribution",
+          "cloudfront:UpdateDistribution", "cloudfront:DeleteDistribution",
+          "cloudfront:ListDistributions", "cloudfront:CreateInvalidation",
           "cloudfront:GetOriginAccessControl", "cloudfront:CreateOriginAccessControl",
-          "cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl"
+          "cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl",
+          "cloudfront:TagResource"
         ]
         Resource = "*"
       },
+      # --- OIDC trust provider ---
       {
+        Sid    = "OIDCProviderManagement"
         Effect = "Allow"
         Action = [
           "iam:GetOpenIDConnectProvider", "iam:CreateOpenIDConnectProvider",
@@ -75,17 +95,20 @@ resource "aws_iam_role_policy" "deploy_perms" {
         ]
         Resource = aws_iam_openid_connect_provider.github.arn
       },
+      # --- The role + its own inline policy ---
       {
+        Sid    = "SelfRoleManagement"
         Effect = "Allow"
         Action = [
           "iam:GetRole", "iam:CreateRole", "iam:UpdateRole", "iam:DeleteRole", "iam:TagRole",
-          "iam:ListRolePolicies", "iam:GetRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy"
+          "iam:ListRolePolicies", "iam:ListAttachedRolePolicies",
+          "iam:GetRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy"
         ]
-        Resource = "arn:aws:iam::984244680905:role/github-actions-codeshield-deploy"
+        Resource = aws_iam_openid_connect_provider.github.arn
       }
     ]
   })
-} 
+}
 
 output "github_role_arn" {
   value = aws_iam_role.github_deploy.arn
